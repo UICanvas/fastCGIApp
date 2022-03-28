@@ -1,0 +1,36 @@
+#!/bin/sh
+
+
+psql -d "postgres" -c "
+CREATE ROLE fastcgipp_test NOSUPERUSER NOCREATEDB NOCREATEROLE INHERIT LOGIN PASSWORD 'fastcgipp_test';" &&
+createdb -O fastcgipp_test fastcgipp_test &&
+
+PGPASSWORDOLD="$PGPASSWORD"
+export PGPASSWORD="fastcgipp_test"
+psql -U fastcgipp_test -d fastcgipp_test -c "
+CREATE TABLE fastcgipp_test (
+    zero     serial PRIMARY KEY,
+    one      smallint,
+    two      bigint,
+    three    text,
+    four     real,
+    five     double precision,
+    six      bytea,
+    seven    text,
+    eight    timestamptz,
+    nine     inet,
+    ten      smallint ARRAY,
+    eleven   text ARRAY,
+    twelve   text ARRAY,
+    thirteen BOOL,
+    fourteen DATE
+);" &&
+@CMAKE_CURRENT_BINARY_DIR@/sql_test
+
+retval=$?
+export PGPASSWORD="$PGPASSWORDOLD"
+
+dropdb fastcgipp_test
+dropuser fastcgipp_test
+
+exit $retval
